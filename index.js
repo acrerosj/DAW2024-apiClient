@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const PORT = 3000;
 const CLIENT = require('./data/clients.json');
+let idMax = Math.max(...CLIENT.map(c => c.id));
+
+app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Hola mundo!!');
@@ -31,6 +34,21 @@ app.get('/api/client/:id', (req, res) => {
     res.send('El cliente con id = ' + id + ' no encontrado');
   }
 }); 
+
+app.post('/api/client', (req, res) => {
+  const newClient = req.body;
+  let error = [];
+  if (!newClient.nombre) error.push('nombre');
+  if (!newClient.apellidos) error.push('apellidos');
+  if (!newClient.cuenta.email) error.push('email');
+  if (error.length == 0) {
+    newClient.id = ++idMax;
+    CLIENT.push(newClient);
+    res.status(201).json(newClient);
+  } else {
+    res.status(422).send('Faltan los campos: ' + error.join(', '));
+  }
+})
 
 app.use(express.static('public'));
 
