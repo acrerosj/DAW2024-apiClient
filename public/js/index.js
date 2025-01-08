@@ -5,6 +5,13 @@ const inputNombre = document.getElementById('nombre');
 const inputApellidos = document.getElementById('apellidos');
 const inputEmail = document.getElementById('email');
 const buttonCrear = document.getElementById('crear');
+const editPanel = document.getElementById('edit-panel');
+const buttonCancelar = document.getElementById('cancelar');
+const inputEditNombre = document.getElementById('edit-nombre');
+const inputEditApellidos = document.getElementById('edit-apellidos');
+const inputEditEmail = document.getElementById('edit-email');
+const inputEditId = document.getElementById('edit-id');
+const buttonGuardar = document.getElementById('guardar');
 
 fetch('/api/client')
 .then(res => res.json())
@@ -38,7 +45,14 @@ function showClient(client) {
   divDetails.innerHTML = `
       <h1>${client.nombre} ${client.apellidos}</h1>
     <h2>${client.cuenta.email}</h2>
+    <p>${client.direccion.localidad}</p>
+    <button onclick="deleteClient(${client.id})">Eliminar</button>
+    <button onclick="editClient()">Modificar</button>
   `
+  inputEditNombre.value = client.nombre;
+  inputEditApellidos.value = client.apellidos;
+  inputEditEmail.value = client.cuenta.email;
+  inputEditId.value = client.id;
 }
 
 buttonCrear.addEventListener('click', () => {
@@ -92,3 +106,30 @@ buttonCrear.addEventListener('click', () => {
     }
   });
 })
+
+function deleteClient(id) {
+  console.log('Eliminando el cliente con id: ' + id);
+  fetch('/api/client/' + id, {method: 'DELETE'})
+  .then(res => {
+    if (res.status == 200) {
+      console.log('El cliente ha sido eliminado.');
+      divDetails.innerHTML = '';
+      const trClient = document.querySelector('[data-id = "' + id + '"]')
+      console.log(trClient);
+      trClient.remove();
+    } else {
+      console.log('El cliente no se ha encontrado.');
+    }
+  })
+}
+
+function editClient() {
+  editPanel.hidden = false;
+}
+
+buttonCancelar.addEventListener('click', () => editPanel.hidden = true);
+
+buttonGuardar.addEventListener('click', () => {
+  const id = inputEditId.value;
+  fetch('/api/client/' + id)
+});
