@@ -71,7 +71,7 @@ app.put('/api/client/:id', (req, res) => {
     client.nombre = newClient.nombre;
     client.apellidos = newClient.apellidos;
     client.cuenta.email = newClient.cuenta.email;
-    
+    res.send('Se ha modificado con éxito');
   } else {
     res.status(404).send('El cliente con id = ' + id + ' no encontrado');
   }

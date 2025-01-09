@@ -12,6 +12,7 @@ const inputEditApellidos = document.getElementById('edit-apellidos');
 const inputEditEmail = document.getElementById('edit-email');
 const inputEditId = document.getElementById('edit-id');
 const buttonGuardar = document.getElementById('guardar');
+let clientEditing;
 
 fetch('/api/client')
 .then(res => res.json())
@@ -42,17 +43,18 @@ tbody.addEventListener('click', (e) => {
 
 function showClient(client) {
   console.log(client);
+  clientEditing = client;
   divDetails.innerHTML = `
       <h1>${client.nombre} ${client.apellidos}</h1>
     <h2>${client.cuenta.email}</h2>
     <p>${client.direccion.localidad}</p>
     <button onclick="deleteClient(${client.id})">Eliminar</button>
     <button onclick="editClient()">Modificar</button>
-  `
+  `;
   inputEditNombre.value = client.nombre;
   inputEditApellidos.value = client.apellidos;
   inputEditEmail.value = client.cuenta.email;
-  inputEditId.value = client.id;
+  editPanel.hidden = true;
 }
 
 buttonCrear.addEventListener('click', () => {
@@ -117,6 +119,8 @@ function deleteClient(id) {
       const trClient = document.querySelector('[data-id = "' + id + '"]')
       console.log(trClient);
       trClient.remove();
+      editPanel.hidden = true;
+      clientEditing = null;
     } else {
       console.log('El cliente no se ha encontrado.');
     }
@@ -127,9 +131,38 @@ function editClient() {
   editPanel.hidden = false;
 }
 
-buttonCancelar.addEventListener('click', () => editPanel.hidden = true);
+buttonCancelar.addEventListener('click', () => {
+  editPanel.hidden = true;
+  inputEditNombre.value = clientEditing.nombre;
+  inputEditApellidos.value = clientEditing.apellidos;
+  inputEditEmail.value = clientEditing.cuenta.email;
+});
 
 buttonGuardar.addEventListener('click', () => {
-  const id = inputEditId.value;
-  fetch('/api/client/' + id)
+  console.log('guardando...');
+  let client = clientEditing;
+  client.nombre = inputEditNombre.value;
+  client.apellidos = inputEditApellidos.value;
+  client.cuenta.email = inputEditEmail.value;
+  let options = {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(client)
+  }
+  fetch('/api/client/' + client.id, options)
+  .then(res => {
+    if (res.status == 200) {
+      console.log('Se ha modificado con éxito.');
+      const trEdit = document.querySelector('[data-id="' + client.id+ '"]');
+      console.log(trEdit);
+      trEdit.children[0].textContent = client.nombre;
+      trEdit.children[1].textContent = client.apellidos;
+      trEdit.children[2].textContent = client.cuenta.email;
+      showClient(client);
+    } else {
+      console.log('Error al modificar los datos');
+    }
+  })
 });
